@@ -26,6 +26,7 @@ public class ModelEvent {
         this.data = data;
     }
 
+
     public ModelEvent(ModelEvent.Type type) {
         this(type, null);
     }

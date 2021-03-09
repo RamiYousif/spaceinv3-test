@@ -1,30 +1,28 @@
 package spaceinv.model;
 
-
-import static spaceinv.model.SI.*;
+import static spaceinv.model.SI.Direction;
 
 /*
  *    A Gun for the game
  *    Can only fire one projectile at the time
  */
-public class Gun implements Positionable {
+public class Gun extends AbstractMovable implements Shootable {
+	private static Direction gunDirection = SI.Direction.STOP;
 
-    double dx = 0;
-    public static double x;
-    public final static double y = 850;
-    int width = 40;
-    int height = 40;
+	public static void setGunDirection(Direction direction) {
+		gunDirection = direction;
+	}
 
-    @Override
-    public  double getX() {return x;}
+	public static Direction getGunDirection() {
+		return gunDirection;
+	}
 
-    @Override
-    public  double getY() {return y;}
+	@Override
+	public Projectile fire() { return Shooter.fire(this, 0.5); }
 
-    @Override
-    public  double getWidth() {return width;}
-
-    @Override
-    public  double getHeight() {return height;}
+	public Gun(int width, int height){
+		setWidth(width);
+		setHeight(height);
+	}
 
 }

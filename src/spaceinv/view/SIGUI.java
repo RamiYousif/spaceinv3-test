@@ -39,51 +39,40 @@ import static spaceinv.model.SI.*;
 public class SIGUI extends Application implements EventHandler {
 
 
-
     private SI spaceInv;                // Reference to the OO-model
     private boolean running = false;    // Is game running?
 
     // ------- Keyboard handling ----------------------------------
 
     private void keyPressed(KeyEvent event) {
-        if (!running) {
-            return;
-        }
+        if (!running) { return; }
         KeyCode kc = event.getCode();
         switch (kc) {
             case LEFT:
                // TODO
-                spaceInv.decelerate = false;
-                spaceInv.accL(true);
+                SI.setGunDirection(Direction.LEFT);
                 break;
             case RIGHT:
                // TODO
-                spaceInv.decelerate = false;
-                spaceInv.accR(true);
+                SI.setGunDirection(Direction.RIGHT);
                 break;
             case SPACE:
-                spaceInv.fireGun();
+                spaceInv.shootGun();
                 break;
-            default:
+            default:  // Nothing
         }
-
     }
 
     private void keyReleased(KeyEvent event) {
-        if (!running) {
-            return;
-        }
-
-        spaceInv.decelerate = true;
-        spaceInv.accL(false);
-        spaceInv.accR(false);
-
-        KeyCode kc = event.getCode();
+        if (!running) { return; }
+        KeyCode kc = event.getCode();//test
+        // Breaks at shooting as well to counteract windows
+        // functionality.
         switch (kc) {
             case LEFT:
-                break;
             case RIGHT:
-                // TODO
+
+                SI.setGunDirection(Direction.STOP);
                 break;
             default: // Nothing
         }
@@ -114,25 +103,33 @@ public class SIGUI extends Application implements EventHandler {
 
     private void newGame() {
 
-        /* Use later
-        List<AbstractSpaceship> ships = new ArrayList<>();
-        int nShips = 12 * (SHIP_WIDTH + 10);
-        for (int i = LEFT_LIMIT + 1; i < nShips; i += 30) {
-            ships.add(new Frigate(i, 50));
+
+
+
+        List<AbstractShips> ships = new ArrayList<>();
+        int nShips = 10 * (SHIP_WIDTH + 10);
+        for (int i = LEFT_LIMIT + 1; i < nShips; i += SHIP_WIDTH * 1.2) {
+            ships.add(new Frigate(i, SHIP_HEIGHT, SHIP_WIDTH,2));
         }
-        for (int i = LEFT_LIMIT + 1; i < nShips; i += 30) {
-            ships.add(new BattleCruiser(i, 80));
+        for (int i = LEFT_LIMIT + 1; i < nShips; i += SHIP_WIDTH * 1.2) {
+            ships.add(new BattleCruiser(i, SHIP_HEIGHT*2, SHIP_WIDTH, 2));
         }
-        for (int i = LEFT_LIMIT + 1; i < nShips; i += 30) {
-            ships.add(new Bomber(i, 110));
+
+        for (int i = LEFT_LIMIT + 1; i < nShips; i += SHIP_WIDTH * 1.2) {
+            ships.add(new Bomber(i, SHIP_HEIGHT*3, SHIP_WIDTH, 2));
         }
-        */
+
+
+
 
         // TODO Build model
 
         // NOTE: Declared at top of class
-        Gun gun = new Gun();
-        spaceInv = new SI(gun);
+
+        Ground ground = new Ground(GAME_WIDTH, GROUND_HEIGHT, GAME_HEIGHT - GROUND_HEIGHT);
+        OuterSpace space = new OuterSpace(GAME_WIDTH, 40);
+
+        spaceInv = new SI(new Gun(40,40), ships,ground , space);
 
         renderBackground();
         timer.start();
@@ -161,10 +158,10 @@ public class SIGUI extends Application implements EventHandler {
     // Implements EventHandler
     @Override
     public void onModelEvent(ModelEvent evt) {
-        Positionable p;
+        AbstractPositionable p;
         switch (evt.type) {
             case GUN_HIT_SHIP:
-                p = (Positionable) evt.data;
+                p = (AbstractPositionable) evt.data;
                 new Explosion(p.getX(), p.getY(), fg).start();
                 Assets.INSTANCE.rocketHitShip.play();
                 break;
@@ -175,8 +172,10 @@ public class SIGUI extends Application implements EventHandler {
                 // TODO Optional
                 break;
             case BOMB_HIT_GUN:
-                p = (Positionable) evt.data;
+                p = (AbstractPositionable) evt.data;
                 new Explosion(p.getX(), p.getY(), fg).start();
+                timer.stop();
+                running = false;
                 break;
             case HAS_WON:
                 timer.stop();
@@ -190,7 +189,7 @@ public class SIGUI extends Application implements EventHandler {
 
     private void render() {
         fg.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-        for (Positionable d : spaceInv.getPositionables()) {
+        for (AbstractPositionable d : spaceInv.getPositionables()) {
             Image i = Assets.INSTANCE.get(d.getClass());
             fg.drawImage(i, d.getX(), d.getY(), d.getWidth(), d.getHeight());
         }
